@@ -6,7 +6,7 @@ require DynaLoader;
 require Exporter;
 use MIME::Base64 qw(encode_base64);
 use vars qw(@ISA $VERSION @EXPORT_OK);
-$VERSION = '0.07';
+$VERSION = '0.08';
 @ISA = qw(DynaLoader Exporter);
 
 
@@ -43,6 +43,8 @@ HTTP::MHTTP->bootstrap($VERSION);
 
 HTTP::MHTTP - this library provides reasonably low level access to the HTTP protocol, for perl.  This does not replace LWP (what possibly could :-) but is a cut for speed.
 It also supports all of HTTP 1.0, so you have GET, POST, PUT, HEAD, and DELETE.
+Some support of HTTP 1.1 is available - sepcifically Transfer-Encoding = chunked and the Keep-Alive extensions.
+
 
 =head1 SYNOPSIS
 
@@ -75,6 +77,14 @@ to do the calls.
 
 initialise the mhttp library - must be called once to reset all internals,
 use http_reset() if you don't need to reset your headers before the next call.
+
+
+=head2 http_set_protocol()
+
+  http_set_protocol(1);  # now operating in HTTP 1.1 mode
+
+Set the protocol level to use - either HTTP 1.0 or 1.1 by passing 0 or 1 - 
+the default is 0 (HTTP 1.0).
 
 
 =head2 http_reset()
@@ -175,7 +185,7 @@ perl(1)
 
 
 # export the open command, and initialise http::mhttp
-my @export_ok = ("http_reset", "http_init", "http_add_headers", "http_status", "http_reason", "http_call", "http_headers", "http_split_headers", "http_body", "http_response", "basic_authorization", "switch_debug", "http_response_length" );
+my @export_ok = ("http_reset", "http_init", "http_add_headers", "http_status", "http_reason", "http_call", "http_headers", "http_split_headers", "http_body", "http_response", "basic_authorization", "switch_debug", "http_response_length", "http_set_protocol" );
 sub import {
 
   my ( $caller ) = caller;

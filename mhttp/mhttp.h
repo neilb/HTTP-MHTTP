@@ -43,6 +43,8 @@ void mhttp_init(void);
 
 void mhttp_add_header(char *hdr);
 
+void mhttp_set_protocol(int proto);
+
 void mhttp_set_body(char *bdy);
 
 char *mhttp_get_response_headers(void);

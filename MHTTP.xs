@@ -16,6 +16,12 @@ void my_http_init( ) {
 
 }
 
+void my_http_set_protocol(SV* sv_proto) {
+
+  mhttp_set_protocol(SvIV(sv_proto));
+
+}
+
 void my_switch_debug(SV* sv_swt) {
 
   mhttp_switch_debug(SvIV(sv_swt));
@@ -44,13 +50,25 @@ void my_http_body(SV* sv_bdy) {
 
 SV* my_http_reason( ) {
 
-  return newSVpv(mhttp_get_reason(),0);
+  char* reason;
+
+  reason = mhttp_get_reason();
+
+  if (reason != NULL){
+       return newSVpv(reason,0);
+  } else {
+       return newSVsv(&PL_sv_undef);
+  }
 
 }
 
 SV* my_http_response( ) {
 
-  return newSVpv(mhttp_get_response(),mhttp_get_response_length());
+  if (mhttp_get_response_length() > 0){
+      return newSVpv(mhttp_get_response(),mhttp_get_response_length());
+  } else {
+       return newSVsv(&PL_sv_undef);
+  }
 
 }
 
@@ -87,6 +105,10 @@ my_http_reset ( )
 
 void
 my_http_init ( )
+
+void
+my_http_set_protocol (sv_proto)
+	SV *	sv_proto
 
 void
 my_switch_debug (sv_swt)

@@ -60,9 +60,10 @@ sub test8 {
 sub test9 {
   http_init();
   switch_debug(1) if $ENV{'DEBUG'};
+  http_set_protocol(1);
   http_add_headers(
                     'User-Agent' => 'MHTTP1/0',
-                    'Host' => 'localhost',
+                    'Host' => 'www.piersharding.com',
                     'Accept-Language' => 'en-gb',
                     'Connection' => 'Keep-Alive',
                   );

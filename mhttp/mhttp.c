@@ -7,14 +7,6 @@
 
 #include "mhttp.h"
 
-#ifdef DOHERROR
-void herror(char * str);
-
-void herror(char *str){
-  fprintf(stderr, "herror: %s\n", str);
-}
-#endif
-
 bool mhttp_lets_debug;        /* global debugging flag           */
 bool mhttp_body_set_flag;     /* global body set flag            */
 
@@ -29,6 +21,11 @@ char *mhttp_body,
      *mhttp_headers[MAX_HEADERS],
      *mhttp_buffers[MAX_BUFFERS];
 
+char *mhttp_last_host = NULL;
+int mhttp_last_port = 0;
+int mhttp_last_socket = 0;
+int mhttp_protocol = 0;
+
 
 void mhttp_switch_debug(int set)
 {
@@ -39,6 +36,14 @@ void mhttp_switch_debug(int set)
     } else {
         mhttp_lets_debug = false;
     }
+
+}
+
+
+void mhttp_set_protocol(int proto)
+{
+
+     mhttp_protocol = proto;
 
 }
 
@@ -62,7 +67,11 @@ int mhttp_get_response_length(void)
 char *mhttp_get_reason(void)
 {
 
+  if (mhttp_reason != NULL){
     return strdup(mhttp_reason);
+  } else {
+    return NULL;
+  }
 
 }
 
@@ -122,6 +131,7 @@ void mhttp_init(void)
   }
   mhttp_hcnt = 0;
   mhttp_lets_debug = false;
+  mhttp_protocol = 0;
   mhttp_reset();
   mhttp_debug("finished init");
 }
@@ -151,6 +161,8 @@ int mhttp_call(char *paction, char *purl)
 {
     bool found_hdrs;        /* found the end of headers flag   */
     bool rcode_flag;        /* found return code flag          */
+    bool newcon_flag;       /* new connection flag             */
+    bool chunked;           /* transfer encoding is chunked    */
     char *action, *url, *host, *ptr, *eomsg, *clptr;
     int  port,
          socket_descriptor,
@@ -158,9 +170,15 @@ int mhttp_call(char *paction, char *purl)
 	 len,
 	 curr_len,
 	 buffer_size,
-	 i;
+	 this_chunk,
+	 i,
+	 pos;
     char str[MAX_STR],
          surl[MAX_STR];
+
+           fd_set rfds, wfds;
+           struct timeval tv;
+           int retval;
 
 
     memset(mhttp_resp_headers, 0, MAX_STR);
@@ -228,16 +246,60 @@ int mhttp_call(char *paction, char *purl)
   }
   mhttp_debug("port number is: %d", port);
 
-  socket_descriptor = mhttp_connect_inet_addr(host, port);
+  newcon_flag = false;
+  //hostandsocket = malloc(128);
+  if (mhttp_last_host != NULL &&
+     strcmp(host, mhttp_last_host) == 0 &&
+     mhttp_last_port == port){
+     socket_descriptor = mhttp_last_socket;
+ /*    
+     FD_ZERO(&rfds);
+     FD_ZERO(&wfds);
+     FD_SET(socket_descriptor, &wfds);
+     tv.tv_sec = 1;
+     tv.tv_usec = 0;
+     retval = select(socket_descriptor + 1, &rfds, &wfds, NULL, &tv);
+     if (retval){
+        mhttp_debug("\n\n\n socket will be available: %d", socket_descriptor);
+     }
+     if (FD_ISSET(socket_descriptor, &wfds)){
+         mhttp_debug("\n\n\n socket will be available to write: %d", socket_descriptor);
+     } else {
+         mhttp_debug("\n\n\n socket will NOT be available to write: %d", socket_descriptor);
+     }
+*/
+     mhttp_debug("using the cached connection");
+  } else {
+    if (mhttp_last_host != NULL){
+      close(mhttp_last_socket);
+      mhttp_last_socket = 0;
+      mhttp_last_port = 0;
+      free(mhttp_last_host);
+    }
+    newcon_flag = true;
+    socket_descriptor = -1;
+    mhttp_debug("didnt find connection - creating a new one: %s/%d - %d ", host, port, socket_descriptor);
+    if( (socket_descriptor = mhttp_connect_inet_addr(host, port)) < 0) {
+         //mhttp_debug("could not create a new socket");
+         mhttp_debug("could not create a new socket: %d", socket_descriptor);
+         return socket_descriptor;
+     }
+  }
+
+  mhttp_debug("socket descriptor is: %d ", socket_descriptor);
+
+  //socket_descriptor = mhttp_connect_inet_addr(host, port);
 
   len = 0;
 
   // construct the query string
   memset(str, 0, sizeof(str));
   strcpy(str, action);
+  //strcpy(str+strlen(str), " http://localhost");
   strcpy(str+strlen(str), " ");
   strcpy(str+strlen(str), surl);
-  strcpy(str+strlen(str), " HTTP/1.0\r\n");
+  //strcpy(str+strlen(str), " HTTP/1.1\r\n");
+  sprintf(str+strlen(str), " HTTP/1.%d\r\n", mhttp_protocol);
   mhttp_debug("adding on the headers: %d", mhttp_hcnt);
   for(i = 0; i < mhttp_hcnt; i++)
   {
@@ -301,9 +363,33 @@ int mhttp_call(char *paction, char *purl)
   rcode_flag = false;
   len = 0;
   curr_len = 0;
+
+/*
+  if (!newcon_flag){
+     FD_ZERO(&rfds);
+     FD_ZERO(&wfds);
+     FD_SET(socket_descriptor, &rfds);
+     tv.tv_sec = 1;
+     tv.tv_usec = 0;
+     retval = select(socket_descriptor + 1, &rfds, &wfds, NULL, &tv);
+     if (retval){
+        mhttp_debug("\n\n\n socket will be available: %d", socket_descriptor);
+     }
+     if (FD_ISSET(socket_descriptor, &rfds)){
+         mhttp_debug("\n\n\n socket will be available to read: %d", socket_descriptor);
+     } else {
+         mhttp_debug("\n\n\n socket will NOT be available to read: %d", socket_descriptor);
+     }
+  }
+*/
+
+
+  chunked = false;
+
   while((returnval = read(socket_descriptor, str, 80)) > 0)
   {
        *(str+returnval) = '\0';
+       //mhttp_debug("Line %d: %s", returnval, str);
 
       /* detect the end of the headers */
       if (!found_hdrs){
@@ -341,6 +427,72 @@ int mhttp_call(char *paction, char *purl)
 	              len = 0;
                       return -8;
 	          }
+	      // look for Transfer-Encoding: chunked
+              } else if ((clptr = strstr(mhttp_resp_headers, "Transfer-Encoding:")) ||
+                         (clptr = strstr(mhttp_resp_headers, "Transfer-encoding:"))){
+		  clptr += 19;
+		  if (strncmp(clptr, "chunked",7) == 0){
+		    mhttp_debug("found Transfer-Encoding: chunked");
+		    chunked = true;
+		    // must find the end of the chunked length line 
+		    // in the remainding buffer
+                    if (clptr = strstr(ptr, "\r\n")){
+		         if (sscanf(ptr, "%x\r\n", &this_chunk) != 1){
+		             mhttp_debug("count not the chunked first amount - something broken");
+			     break;
+			 }
+			 // shift past the chunk size
+			 *clptr = '\0';
+			 curr_len += strlen(ptr) + 2;
+			 clptr += 2;
+		         mhttp_debug("Transfer-Encoding: chunked first buffer is %d - %d bytes left", this_chunk, returnval - curr_len);
+                         mhttp_response = malloc(this_chunk + 2);
+                         memcpy(mhttp_response, clptr, returnval - curr_len);
+                         len += returnval - curr_len;
+		         buffer_size = this_chunk + 2;
+			 ptr = clptr;
+		    } else {
+		      // give up? XXX - not enuf string left to find chunk in buffer?
+		         // get another line and try again
+		         mhttp_debug("getting another line");
+                         i = returnval;
+                         if ((returnval = read(socket_descriptor, str+returnval, 80)) > 0){
+			     returnval += i;
+                             *(str+returnval) = '\0';
+			     mhttp_debug("looking for first chunk at: %s", ptr);
+                             if (clptr = strstr(ptr, "\r\n")){
+		                 if (sscanf(ptr, "%x\r\n", &this_chunk) != 1){
+			             // cant find the next chunk
+			             mhttp_debug("could not find first chunk - something broken");
+			             break;
+			         } else {
+			             // sort out the next chunk
+				     if (this_chunk == 0){
+				         // final chunk
+				         mhttp_debug("the first chunk is the final chunk");
+				         break;
+				     } else {
+			                 // shift past the chunk size
+			                 *clptr = '\0';
+			                 curr_len += strlen(ptr) + 2;
+			                 clptr += 2;
+		                         mhttp_debug("Transfer-Encoding: chunked first buffer is %d - %d bytes left", this_chunk, returnval - curr_len);
+                                         mhttp_response = malloc(this_chunk + 2);
+                                         memcpy(mhttp_response, clptr, returnval - curr_len);
+                                         len += returnval - curr_len;
+		                         buffer_size = this_chunk + 2;
+			                 ptr = clptr;
+				     }
+			        }
+			    } else {
+			       mhttp_debug("cannot find \\r\\n after first chunked marker - time to give up");
+			       break;
+			    }
+		        } else {
+			    // XXX no more data to read
+			}
+		    }
+		  }
               } else {
 		  mhttp_debug("didnt find content-length - must use realloc");
                   mhttp_response_length = 0;
@@ -353,17 +505,101 @@ int mhttp_call(char *paction, char *purl)
 	      curr_len += 80;
 	  }
       } else {
+          // we have the headers - this is the body
           if (mhttp_response_length > 0){
               // make sure that it does not overflow the buffer
               if (mhttp_response_length >= (len + returnval)){
                   memcpy(mhttp_response+len, str, returnval);
               }
 	  } else {
-	      if (len + returnval > buffer_size){
-	         mhttp_response = realloc(mhttp_response, buffer_size + MAX_STR);
-		 buffer_size += MAX_STR;
+	      // we dont know how big it should be so compensate
+              //mhttp_debug("buffer remaining is: %d", buffer_size - len);
+	      if (chunked){
+	          if (len + returnval >= buffer_size - 2){
+		     mhttp_debug("reached end of buffer - find another buffer? #%s", str+((buffer_size - 2) - len));
+		     mhttp_debug("remainder of line is: %d - trimming is: %d", (len + returnval) - (buffer_size - 2), (buffer_size - 2) - len);
+                     memcpy(mhttp_response+len, str, (buffer_size - 2) - len);
+		     pos = (buffer_size - 2) - len;
+		     len += pos;
+
+		     // find the next chunk
+		     mhttp_debug("looking for the next chunk");
+		     if (sscanf(str+pos, "\r\n%d\r\n", &this_chunk) != 1){
+		         // get another line and try again
+		         mhttp_debug("getting another line");
+                         i = returnval;
+                         if ((returnval = read(socket_descriptor, str+returnval, 80)) > 0){
+			     returnval += i;
+                             *(str+returnval) = '\0';
+			     mhttp_debug("looking for last chunk at: %s", str+pos);
+		             if (sscanf(str+pos, "\r\n%x\r\n", &this_chunk) != 1){
+			         // cant find the next chunk
+			         mhttp_debug("could not find next chunk and we are out of data");
+			         break;
+			     } else {
+			         // sort out the next chunk
+				 if (this_chunk == 0){
+				     // final chunk
+				     mhttp_debug("we found the final chunk");
+				     break;
+				 } else {
+				     // resize and paste on remainder
+			             mhttp_debug("resize and paste on remainder for next chunk processing");
+	                             mhttp_response = realloc(mhttp_response, buffer_size + this_chunk);
+		                     buffer_size += this_chunk;
+				     if (clptr = strstr(str+(pos + 5),"\n")){
+				         *clptr = '\0';
+				         clptr += 1;
+					 i = strlen(str+pos);
+					 i += 1 + pos;
+                                         memcpy(mhttp_response+len, clptr, returnval - i);
+				     } else {
+				         mhttp_debug("did not find end of line of new chunk value");
+					 break;
+				     }
+				 }
+			    }
+                         } else {
+		             // bad problem with trying to get a final line
+			     mhttp_debug("read for final line failed");
+		             break;
+		         }
+                     } else {
+		       // allready have the chunk 
+		       mhttp_debug("found the next chunk marker");
+			   if (this_chunk == 0){
+			       // final chunk
+			       mhttp_debug("this is the last chunk");
+			       break;
+			   } else {
+			       // resize and paste on remainder
+			       mhttp_debug("resize and paste on remainder for next chunk processing");
+	                       mhttp_response = realloc(mhttp_response, buffer_size + this_chunk);
+		               buffer_size += this_chunk;
+			      if (clptr = strstr(str+(pos + 5),"\n")){
+			          *clptr = '\0';
+			          clptr += 1;
+				  i = strlen(str+pos);
+				  i += 1 + pos;
+                                  memcpy(mhttp_response+len, clptr, returnval - i);
+			      } else {
+			          mhttp_debug("did not find end of line of new chunk value");
+				  break;
+			      }
+			  }
+		     }
+	          } else {
+		    // not end of chunk yet
+                    memcpy(mhttp_response+len, str, returnval);
+		  }
+	      } else {
+	          // else this is not a chunked read - so realloc when necessary
+	          if (len + returnval > buffer_size){
+	             mhttp_response = realloc(mhttp_response, buffer_size + MAX_STR);
+		     buffer_size += MAX_STR;
+	          }
+                  memcpy(mhttp_response+len, str, returnval);
 	      }
-              memcpy(mhttp_response+len, str, returnval);
 	  }
           len += returnval;
       }
@@ -392,14 +628,40 @@ int mhttp_call(char *paction, char *purl)
       // lets get out of here if we have read enough
       if (mhttp_response_length > 0 && len >= mhttp_response_length )
           break;
+
+      //if (returnval < 80)
+      //    break;
+
   }
-  mhttp_debug("content length actually copied: %d", len);
+  //mhttp_debug("last line: %s ", str);
+  mhttp_debug("content length actually copied: %d (may include \\r\\n)", len);
   mhttp_response_length = len;
 
   /* it will be closed anyway when we exit */
-  close(socket_descriptor);
-  mhttp_debug("all done");
+  //close(socket_descriptor);
+  if (mhttp_protocol == 0 ||
+      (clptr = strstr(mhttp_resp_headers, "Connection: close")) ||
+      (clptr = strstr(mhttp_resp_headers, "Connection: Close")) ){
+      close(socket_descriptor);
+      if (mhttp_last_host != NULL){
+          mhttp_last_socket = 0;
+          mhttp_last_port = 0;
+          free(mhttp_last_host);
+          mhttp_debug("removed socket name");
+      }
+      mhttp_debug("Closed the connection");
+  } else {
+      if (newcon_flag){
+          mhttp_last_socket = socket_descriptor;
+          mhttp_last_port = port;
+          mhttp_last_host = strdup(host);
+          mhttp_debug("Caching the connection");
+      } else {
+          mhttp_debug("connection allready cached");
+      }
+  }
 
+  mhttp_debug("all done");
   /* just to be pedantic... */
   return 1;
 }
@@ -415,6 +677,8 @@ int mhttp_connect_inet_addr(const char *hostname, unsigned short int port)
 
   /* socket(domain, type, protocol) */
   inet_socket = socket(PF_INET, SOCK_STREAM, 0);
+
+  mhttp_debug("socket no: %d", inet_socket);
   /* domain is PF_INET(internet/IPv4 domain) *
    * type is SOCK_STREAM(tcp) *
    * protocol is 0(only one SOCK_STREAM type in the PF_INET domain
@@ -424,6 +688,7 @@ int mhttp_connect_inet_addr(const char *hostname, unsigned short int port)
   {
     /* socket returns -1 on error */
     perror("socket(PF_INET, SOCK_STREAM, 0) error");
+    mhttp_debug("socket(PF_INET, SOCK_STREAM, 0) error");
     //exit(5);
     return -2;
   }
@@ -433,6 +698,7 @@ int mhttp_connect_inet_addr(const char *hostname, unsigned short int port)
   {
     /* connect returns -1 on error */
     perror("connect(...) error");
+    mhttp_debug("connect(...) error");
     //exit(6);
     return -3;
   }
@@ -452,6 +718,7 @@ int mhttp_build_inet_addr(struct sockaddr_in *addr, const char *hostname, unsign
   {
     /* gethostbyname returns NULL on error */
     herror("gethostbyname failed");
+    mhttp_debug("gethostbyname failed");
     //exit(7);
     return -1;
   }
