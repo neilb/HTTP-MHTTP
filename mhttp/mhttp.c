@@ -132,8 +132,10 @@ int mhttp_call(char *paction, char *purl)
 #ifdef GOTSSL
        if (mhttp_connection->is_ssl){
 	   mhttp_debug("creating an SSL connection");
-           SSLeay_add_ssl_algorithms();
-           mhttp_connection->meth = SSLv2_client_method();
+           //SSLeay_add_ssl_algorithms();
+	   OpenSSL_add_ssl_algorithms();
+           //mhttp_connection->meth = SSLv2_client_method();
+	   mhttp_connection->meth = SSLv3_client_method();
            SSL_load_error_strings();
            mhttp_connection->ctx = SSL_CTX_new (mhttp_connection->meth);
 	   if (mhttp_connection->ctx == NULL){
@@ -156,7 +158,11 @@ int mhttp_call(char *paction, char *purl)
 	       return -12;
 	   }
 	   mhttp_debug("SSL set_verify");
+	   SSL_CTX_set_default_verify_paths(mhttp_connection->ctx);
+	   //SSL_CTX_load_verify_locations(mhttp_connection->ctx, "/etc/httpd/conf/ssl.crt/ca-bundle.crt",
+	   //                                   NULL);
 	   SSL_CTX_set_verify(mhttp_connection->ctx, SSL_VERIFY_PEER|SSL_VERIFY_CLIENT_ONCE, mhttp_verify_callback);
+	   //SSL_CTX_set_verify(mhttp_connection->ctx, SSL_VERIFY_PEER|SSL_VERIFY_CLIENT_ONCE, NULL);
 	   mhttp_debug("SSL set_fd");
            SSL_set_fd (mhttp_connection->ssl, mhttp_connection->fd);
            returnval = SSL_connect (mhttp_connection->ssl);
@@ -570,6 +576,7 @@ int read_headers(mhttp_conn_t conn, char *str){
           /* tidy up the first bit of the body XXX */
 	  mhttp_debug("returnval: %d - curr_len: %d", returnval, curr_len);
 	  rem = returnval - curr_len;
+	  mhttp_debug("the remainder is: %d", rem);
 
           // find the Content-Length header
           if ( find_content_length() > 0 ){
@@ -604,6 +611,7 @@ int read_headers(mhttp_conn_t conn, char *str){
               mhttp_response_length = 0;
               mhttp_response = malloc(MAX_STR);
               memcpy(mhttp_response, ptr, rem);
+	      return rem;
 	   }
            // or determine that it is HTTP/1.0
            // or find the Connection: close
