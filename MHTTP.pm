@@ -6,7 +6,7 @@ require DynaLoader;
 require Exporter;
 use MIME::Base64 qw(encode_base64);
 use vars qw(@ISA $VERSION @EXPORT_OK);
-$VERSION = '0.03';
+$VERSION = '0.04';
 @ISA = qw(DynaLoader Exporter);
 
 

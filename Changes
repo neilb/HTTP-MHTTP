@@ -1,1 +1,2 @@
-None yet.
+Thu Jan 23 13:47:17 GMT 2003
+ 0.04 - modified the C library to realloc() space for the incoming buffers

@@ -11,7 +11,6 @@ bool mhttp_lets_debug;        /* global debugging flag           */
 bool mhttp_body_set_flag;     /* global body set flag            */
 
 int  mhttp_hcnt,
-     mhttp_bcnt,
      mhttp_rcode,
      mhttp_response_length;
 
@@ -81,12 +80,6 @@ void mhttp_reset(void)
 
   int i;
 
-  for (i = 0; i < mhttp_bcnt; i++)
-  {
-      free(mhttp_buffers[i]);
-      mhttp_debug("freeing buffer");
-      mhttp_buffers[i] = NULL;
-  }
   if (mhttp_response != NULL)
   {
       free(mhttp_response);
@@ -103,7 +96,6 @@ void mhttp_reset(void)
   if (mhttp_body_set_flag)
       free(mhttp_body);
   mhttp_body_set_flag = false;
-  mhttp_bcnt = 0;
   mhttp_rcode = 0;
   mhttp_debug("finished reset");
 }
@@ -155,15 +147,12 @@ int mhttp_call(char *paction, char *purl)
     int  port,
          socket_descriptor,
          returnval,
-         result,
-	 bcnt,
 	 len,
 	 curr_len,
+	 buffer_size,
 	 i;
     char str[MAX_STR],
          surl[MAX_STR];
-    char *resplines[MAX_RESPONSE];
-    int resplines_lens[MAX_RESPONSE];
 
 
     memset(mhttp_resp_headers, 0, MAX_STR);
@@ -303,14 +292,10 @@ int mhttp_call(char *paction, char *purl)
   found_hdrs = false;
   rcode_flag = false;
   len = 0;
-  bcnt = 0;
   curr_len = 0;
   while((returnval = read(socket_descriptor, str, 80)) > 0)
   {
        *(str+returnval) = '\0';
-      // make sure that we dont overflow
-      if (bcnt > MAX_RESPONSE)
-        break;
 
       /* detect the end of the headers */
       if (!found_hdrs){
@@ -338,7 +323,6 @@ int mhttp_call(char *paction, char *purl)
                   mhttp_response_length = atoi(clptr);
                   mhttp_debug("content length: %d", mhttp_response_length);
                   mhttp_response = malloc(mhttp_response_length + 2);
-                  memset(mhttp_response, 0 , mhttp_response_length + 2);
 	          if (mhttp_response_length >= (returnval - curr_len)){
 		      mhttp_debug("copying the initial part of the body");
                       memcpy(mhttp_response, ptr, returnval - curr_len);
@@ -350,12 +334,12 @@ int mhttp_call(char *paction, char *purl)
                       return -8;
 	          }
               } else {
-		  mhttp_debug("didnt find content-length - must use buffers");
+		  mhttp_debug("didnt find content-length - must use realloc");
                   mhttp_response_length = 0;
-                  resplines[bcnt++] = malloc(returnval - curr_len);
-                  memcpy(resplines[bcnt - 1], ptr, returnval - curr_len);
-                  resplines_lens[bcnt - 1] = returnval - curr_len;
+                  mhttp_response = malloc(MAX_STR);
+                  memcpy(mhttp_response, ptr, returnval - curr_len);
                   len += returnval - curr_len;
+		  buffer_size = MAX_STR;
 	      }
           } else {
 	      curr_len += 80;
@@ -367,9 +351,11 @@ int mhttp_call(char *paction, char *purl)
                   memcpy(mhttp_response+len, str, returnval);
               }
 	  } else {
-              resplines[bcnt++] = malloc(returnval);
-              memcpy(resplines[bcnt - 1], str, returnval);
-              resplines_lens[bcnt - 1] = returnval;
+	      if (len + returnval > buffer_size){
+	         mhttp_response = realloc(mhttp_response, buffer_size + MAX_STR);
+		 buffer_size += MAX_STR;
+	      }
+              memcpy(mhttp_response+len, str, returnval);
 	  }
           len += returnval;
       }
@@ -399,20 +385,7 @@ int mhttp_call(char *paction, char *purl)
       if (mhttp_response_length > 0 && len >= mhttp_response_length )
           break;
   }
-  if (mhttp_response_length > 0){
-      mhttp_debug("content length actually copied: %d", len);
-  } else {
-      mhttp_debug("transfering buffers as no content-length header");
-      resplines[bcnt] = NULL;
-      mhttp_response = malloc(len + 2);
-      memset(mhttp_response, 0 , len + 2);
-      curr_len = 0;
-      for (i = 0; i < bcnt; i++){
-          memcpy(mhttp_response+curr_len, resplines[i], resplines_lens[i]);
-          free(resplines[i]);
-          curr_len += resplines_lens[i];
-      }
-  }
+  mhttp_debug("content length actually copied: %d", len);
   mhttp_response_length = len;
 
   /* it will be closed anyway when we exit */

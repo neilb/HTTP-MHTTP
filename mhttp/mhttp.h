@@ -19,7 +19,6 @@
 // how big is everything
 #define MAX_STR 1025
 #define MAX_BUFFERS 1025
-#define MAX_RESPONSE 10240
 #define MAX_HEADERS 257
 
 // fake up a definition of bool if it doesnt exist
