@@ -7,6 +7,14 @@
 
 #include "mhttp.h"
 
+#ifdef DOHERROR
+void herror(char * str);
+
+void herror(char *str){
+  fprintf(stderr, "herror: %s\n", str);
+}
+#endif
+
 bool mhttp_lets_debug;        /* global debugging flag           */
 bool mhttp_body_set_flag;     /* global body set flag            */
 
@@ -176,10 +184,6 @@ int mhttp_call(char *paction, char *purl)
     char str[MAX_STR],
          surl[MAX_STR];
 
-           fd_set rfds, wfds;
-           struct timeval tv;
-           int retval;
-
 
     memset(mhttp_resp_headers, 0, MAX_STR);
 
@@ -252,22 +256,6 @@ int mhttp_call(char *paction, char *purl)
      strcmp(host, mhttp_last_host) == 0 &&
      mhttp_last_port == port){
      socket_descriptor = mhttp_last_socket;
- /*    
-     FD_ZERO(&rfds);
-     FD_ZERO(&wfds);
-     FD_SET(socket_descriptor, &wfds);
-     tv.tv_sec = 1;
-     tv.tv_usec = 0;
-     retval = select(socket_descriptor + 1, &rfds, &wfds, NULL, &tv);
-     if (retval){
-        mhttp_debug("\n\n\n socket will be available: %d", socket_descriptor);
-     }
-     if (FD_ISSET(socket_descriptor, &wfds)){
-         mhttp_debug("\n\n\n socket will be available to write: %d", socket_descriptor);
-     } else {
-         mhttp_debug("\n\n\n socket will NOT be available to write: %d", socket_descriptor);
-     }
-*/
      mhttp_debug("using the cached connection");
   } else {
     if (mhttp_last_host != NULL){
@@ -363,27 +351,6 @@ int mhttp_call(char *paction, char *purl)
   rcode_flag = false;
   len = 0;
   curr_len = 0;
-
-/*
-  if (!newcon_flag){
-     FD_ZERO(&rfds);
-     FD_ZERO(&wfds);
-     FD_SET(socket_descriptor, &rfds);
-     tv.tv_sec = 1;
-     tv.tv_usec = 0;
-     retval = select(socket_descriptor + 1, &rfds, &wfds, NULL, &tv);
-     if (retval){
-        mhttp_debug("\n\n\n socket will be available: %d", socket_descriptor);
-     }
-     if (FD_ISSET(socket_descriptor, &rfds)){
-         mhttp_debug("\n\n\n socket will be available to read: %d", socket_descriptor);
-     } else {
-         mhttp_debug("\n\n\n socket will NOT be available to read: %d", socket_descriptor);
-     }
-  }
-*/
-
-
   chunked = false;
 
   while((returnval = read(socket_descriptor, str, 80)) > 0)
