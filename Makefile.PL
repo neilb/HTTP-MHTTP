@@ -135,7 +135,7 @@ INFO
 
 # end of Crypt-SSLeay
 
-  $GOTSSL = ' -DGOTSSL ';
+  $GOTSSL = ' -DOPENSSL_NO_KRB5 -DGOTSSL ';
 }
 
 WriteMakefile(

@@ -2,7 +2,7 @@ use ExtUtils::MakeMaker;
 #$Verbose = 1;
 my $GOTSSL = "";
 if (exists $ENV{'GOTSSL'} && $ENV{'GOTSSL'} eq 'yes'){
-  $GOTSSL = ' -DGOTSSL ';
+  $GOTSSL = ' -DOPENSSL_NO_KRB5 -DGOTSSL ';
 }
   
 WriteMakefile(

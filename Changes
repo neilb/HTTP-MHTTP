@@ -26,3 +26,5 @@ Mon Mar 24 12:11:39 GMT 2003
 Mon May 19 06:33:09 BST 2003
  0.13 - enhanced the build process to determine where openssl is installed - this was all borrowed from
         Crypt-SSLeay
+0.14 Mon Sep 22 11:13:46 NZST 2003
+ - added -DOPENSSL_NO_KRB5 to suppress Kerberos header includes
