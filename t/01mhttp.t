@@ -32,9 +32,9 @@ sub test3 {
 }
 
 sub test4 {
-  my $ret =  http_call('GET', 'http://www.piersharding.com/');
+  my $ret =  http_call('GET', 'http://www.piersharding.com/blog/');
   #warn "4: the return code is: $ret \n";
-  return $ret;
+  return $ret > 0 ? 1 : 0;
 }
 
 sub test5 {
@@ -72,7 +72,7 @@ sub test9 {
   for (1..3){
     http_reset();
     my $rc = http_call('GET', 'http://www.piersharding.com/');
-    return 0 unless $rc;
+    return 0 unless $rc > 0;
     #warn "9: Status: ".http_status()."\n";
   }
   return 1;

@@ -16,6 +16,7 @@ void herror(char *str){
 
 bool mhttp_lets_debug;        /* global debugging flag           */
 bool mhttp_body_set_flag;     /* global body set flag            */
+bool mhttp_host_hdr;          /* I got a Host header             */
 int mhttp_protocol = 0;
 bool mhttp_first_init = false;
 
@@ -85,6 +86,12 @@ int mhttp_call(char *paction, char *purl)
        mhttp_connection->host,
        mhttp_connection->port,
        mhttp_connection->is_ssl);
+
+    if (mhttp_protocol == 1 && ! mhttp_host_hdr){
+        mhttp_debug("This is HTTP/1.1 and we don't have a Host header");
+        return -19;
+    }
+
     if (mhttp_last_connection != NULL){
     mhttp_debug("OLD connection: %s / %d / %d",
        mhttp_last_connection->host,
@@ -898,6 +905,7 @@ void mhttp_init(void)
   mhttp_hcnt = 0;
   mhttp_lets_debug = false;
   mhttp_protocol = 0;
+  mhttp_host_hdr = false;
   mhttp_reset();
   mhttp_debug("finished init");
 }
@@ -908,6 +916,11 @@ void mhttp_add_header(char *hdr)
 
     if (!mhttp_first_init)
         mhttp_init();
+
+    /* Do we have a Host Header?                          */
+    if (! mhttp_host_hdr && strncmp("Host:", hdr, 5) == 0)
+        mhttp_host_hdr = true;
+
     mhttp_headers[mhttp_hcnt++] = strdup(hdr);
     mhttp_debug("request header %s", mhttp_headers[mhttp_hcnt - 1]);
     mhttp_headers[mhttp_hcnt] = NULL;
