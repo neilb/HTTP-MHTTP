@@ -1,10 +1,15 @@
 use ExtUtils::MakeMaker;
 #$Verbose = 1;
+my $GOTSSL = "";
+if (exists $ENV{'GOTSSL'} && $ENV{'GOTSSL'} eq 'yes'){
+  $GOTSSL = ' -DGOTSSL ';
+}
+  
 WriteMakefile(
      NAME   => 'libmhttp',
      SKIP   => [qw(all static static_lib dynamic dynamic_lib)],
      clean  => {'FILES' => 'libmhttp$(LIBEEXT)'},
-     DEFINE => '-D'.(($^O =~ /Solaris/i)? 'DOHERROR' : 'SUMITELSE'),
+     DEFINE => $GOTSSL.'-D'.(($^O =~ /Solaris/i)? 'DOHERROR' : 'SUMITELSE'),
              );
 
 sub MY::top_targets {

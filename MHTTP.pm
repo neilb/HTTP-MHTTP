@@ -6,7 +6,7 @@ require DynaLoader;
 require Exporter;
 use MIME::Base64 qw(encode_base64);
 use vars qw(@ISA $VERSION @EXPORT_OK);
-$VERSION = '0.09';
+$VERSION = '0.10';
 @ISA = qw(DynaLoader Exporter);
 
 
@@ -44,6 +44,8 @@ HTTP::MHTTP->bootstrap($VERSION);
 HTTP::MHTTP - this library provides reasonably low level access to the HTTP protocol, for perl.  This does not replace LWP (what possibly could :-) but is a cut for speed.
 It also supports all of HTTP 1.0, so you have GET, POST, PUT, HEAD, and DELETE.
 Some support of HTTP 1.1 is available - sepcifically Transfer-Encoding = chunked and the Keep-Alive extensions.
+
+Additionally - rudimentary SSL support can be compiled in.  This effectively enables negotiation of TLS, but does not validate the certificates.
 
 
 =head1 SYNOPSIS

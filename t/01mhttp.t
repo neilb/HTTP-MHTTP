@@ -24,7 +24,7 @@ sub test2 {
 sub test3 {
   http_add_headers(
                    'User-Agent' => 'DVSGHTTP1/0',
-                   'Host' => 'localhost',
+                   'Host' => 'www.piersharding.com',
                    'Accept-Language' => 'en-gb',
                    'Connection' => 'Keep-Alive',
                  );
@@ -32,27 +32,29 @@ sub test3 {
 }
 
 sub test4 {
-  return http_call('GET', 'http://www.piersharding.com/');
+  my $ret =  http_call('GET', 'http://www.piersharding.com/');
+  #warn "4: the return code is: $ret \n";
+  return $ret;
 }
 
 sub test5 {
-  #warn "status: ".http_status()."\n";
+  #warn "5: status: ".http_status()."\n";
   return http_status() == 200 ? 1 : 0;
 }
 
 sub test6 {
-  #warn "response: ".http_response()."\n";
+  #warn "6: response: ".http_response()."\n";
   my @a = split(/\n/,http_response());
   return @a > 0 ? 1 : 0;
 }
 
 sub test7 {
-  #warn "reason: ".http_reason()."\n";
+  #warn "7: reason: ".http_reason()."\n";
   return length(http_reason()) > 0 ? 1 : 0;
 }
 
 sub test8 {
-  #warn "headers: ".http_headers()."\n";
+  #warn "8: headers: ".http_headers()."\n";
   my @a = split(/\n/,http_headers());
   return @a > 0 ? 1 : 0;
 }
@@ -71,7 +73,7 @@ sub test9 {
     http_reset();
     my $rc = http_call('GET', 'http://www.piersharding.com/');
     return 0 unless $rc;
-    #warn "Status: ".http_status()."\n";
+    #warn "9: Status: ".http_status()."\n";
   }
   return 1;
 }

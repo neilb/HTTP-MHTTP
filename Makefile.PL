@@ -1,5 +1,11 @@
 use ExtUtils::MakeMaker;
 
+my $GOTSSL = "";
+if (exists $ENV{'GOTSSL'} && $ENV{'GOTSSL'} eq 'yes'){
+  $GOTSSL = ' -DGOTSSL ';
+}
+
+
 WriteMakefile(
     clean => { 'FILES'	=> '*~ *.inl core test*.txt *.tar.gz _Inline ' },
     dist => { 'TARFLAGS'	=> 'cvf',
@@ -8,7 +14,8 @@ WriteMakefile(
     'NAME'	=> 'HTTP::MHTTP',
     'VERSION_FROM' => 'MHTTP.pm',
     'MYEXTLIB' => 'mhttp/libmhttp$(LIB_EXT)',
-    'DEFINE'	=> "",
+    'DEFINE'	=> $GOTSSL,
+    'LIBS'      => ($GOTSSL ? "-lssl" : ""),
     'INC'	=> "-Imhttp",
 );
 

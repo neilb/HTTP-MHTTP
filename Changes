@@ -16,3 +16,6 @@ Fri Feb 28 15:28:43 GMT 2003
 Sun Mar  2 18:17:36 GMT 2003
  0.09 - fixed up the fudge for Solaris and herror() - I accidentally
      deleted it, and remove reference to timeval.
+
+Mon Mar 24 09:25:25 GMT 2003
+ 0.10 - add in basic SSL support - this does not validate certificates, but enables the TLS level negotiation.
