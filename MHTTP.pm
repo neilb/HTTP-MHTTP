@@ -1,12 +1,12 @@
 package HTTP::MHTTP;
 use strict;
-require 5.006;
+require 5.005;
 use Carp;
 require DynaLoader;
 require Exporter;
 use MIME::Base64 qw(encode_base64);
 use vars qw(@ISA $VERSION @EXPORT_OK);
-$VERSION = '0.05';
+$VERSION = '0.06';
 @ISA = qw(DynaLoader Exporter);
 
 
