@@ -28,3 +28,6 @@ Mon May 19 06:33:09 BST 2003
         Crypt-SSLeay
 0.14 Mon Sep 22 11:13:46 NZST 2003
  - added -DOPENSSL_NO_KRB5 to suppress Kerberos header includes
+
+0.15 Sun Dec 14 09:47:23 NZDT 2003
+ - Change the response headers to be an array ref for mhttp_split_headers()

@@ -5,6 +5,7 @@ BEGIN { plan tests => 9 }
 use HTTP::MHTTP;
 
 ok(1);
+#ok(test10());
 ok(test2());
 ok(test3());
 ok(test4());
@@ -75,5 +76,22 @@ sub test9 {
     return 0 unless $rc > 0;
     #warn "9: Status: ".http_status()."\n";
   }
+  return 1;
+}
+
+sub test10 {
+  http_init();
+  switch_debug(1) if $ENV{'DEBUG'};
+  http_set_protocol(1);
+  http_add_headers(
+                    'User-Agent' => 'MHTTP1/0',
+                    'Host' => 'badger.local.net',
+                    'Accept-Language' => 'en-gb',
+                    'Connection' => 'Keep-Alive',
+                  );
+  http_reset();
+  my $rc = http_call('GET', 'https://badger.local.net');
+  return 0 unless $rc > 0;
+  warn "9: Status: ".http_status()."\n";
   return 1;
 }

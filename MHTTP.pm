@@ -6,7 +6,7 @@ require DynaLoader;
 require Exporter;
 use MIME::Base64 qw(encode_base64);
 use vars qw(@ISA $VERSION @EXPORT_OK);
-$VERSION = '0.14';
+$VERSION = '0.15';
 @ISA = qw(DynaLoader Exporter);
 
 
@@ -165,8 +165,8 @@ Returns the headers of the last call, as a single string.
 
 =head2 http_split_headers()
 
-Returns the split out hash of headers of the last call.  Returns the 
-hash reference.
+Returns the split out array ref of array ref header value pairs of the last call. 
+[ [ hdr, val], [hdr, val] ... ]
 
 
 =head2 http_response_length()
@@ -235,11 +235,13 @@ sub http_add_headers {
 
 sub http_split_headers {
 
-  my $headers = {};
+  my $headers = [];
   foreach my $h (split(/\n/,http_headers())){
     next unless $h =~ /:/;
     my ($hdr,$val) = $h =~ /^(.*?):\s(.*?)$/;
-    $headers->{$hdr} = $val;
+    $val =~ s/[\n\r]//g;
+    push (@$headers, [$hdr, $val]);
+    #$headers->{$hdr} = $val;
   }
   return $headers;
 
