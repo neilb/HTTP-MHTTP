@@ -32,7 +32,7 @@ sub test3 {
 }
 
 sub test4 {
-  return http_call('GET', 'http://localhost/');
+  return http_call('GET', 'http://www.piersharding.com/');
 }
 
 sub test5 {

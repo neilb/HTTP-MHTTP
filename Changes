@@ -1,2 +1,4 @@
 Thu Jan 23 13:47:17 GMT 2003
  0.04 - modified the C library to realloc() space for the incoming buffers
+Sat Jan 25 13:02:15 GMT 2003
+ 0.05 - fixed up a test that was pointing to localhost!
