@@ -7,6 +7,14 @@
 
 #include "mhttp.h"
 
+#ifdef DOHERROR
+void herror(char * str);
+
+void herror(char *str){
+  fprintf(stderr, "herror: %s\n", str);
+}
+#endif
+
 bool mhttp_lets_debug;        /* global debugging flag           */
 bool mhttp_body_set_flag;     /* global body set flag            */
 

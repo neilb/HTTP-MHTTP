@@ -8,7 +8,7 @@ WriteMakefile(
     'NAME'	=> 'HTTP::MHTTP',
     'VERSION_FROM' => 'MHTTP.pm',
     'MYEXTLIB' => 'mhttp/libmhttp$(LIB_EXT)',
-    'DEFINE'	=> "",   
+    'DEFINE'	=> "",
     'INC'	=> "-Imhttp",
 );
 

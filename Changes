@@ -6,3 +6,6 @@ Sat Jan 25 13:02:15 GMT 2003
 
 Wed Jan 29 19:24:29 GMT 2003
  0.06 - change the require to 5.005 - as tested by Mike Chamberlain
+
+Thu Jan 30 12:14:46 GMT 2003
+ 0.07 - define our own herror() if we are on Solaris

@@ -4,6 +4,7 @@ WriteMakefile(
      NAME   => 'libmhttp',
      SKIP   => [qw(all static static_lib dynamic dynamic_lib)],
      clean  => {'FILES' => 'libmhttp$(LIBEEXT)'},
+     DEFINE => '-D'.(($^O =~ /Solaris/i)? 'DOHERROR' : 'SUMITELSE'),
              );
 
 sub MY::top_targets {
