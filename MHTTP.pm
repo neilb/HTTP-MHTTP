@@ -6,7 +6,7 @@ require DynaLoader;
 require Exporter;
 use MIME::Base64 qw(encode_base64);
 use vars qw(@ISA $VERSION @EXPORT_OK);
-$VERSION = '0.02';
+$VERSION = '0.03';
 @ISA = qw(DynaLoader Exporter);
 
 
@@ -41,28 +41,29 @@ HTTP::MHTTP->bootstrap($VERSION);
 
 =head1 NAME
 
-HTTP::MHTTP - this library provides reasonably low level access to the HTTP protocol, for perl.  This does not replace LWP but is a cut for speed.
+HTTP::MHTTP - this library provides reasonably low level access to the HTTP protocol, for perl.  This does not replace LWP (what possibly could :-) but is a cut for speed.
+It also supports all of HTTP 1.0, so you have GET, POST, PUT, HEAD, and DELETE.
 
 =head1 SYNOPSIS
 
-use HTTP::MHTTP;
-
-http_init();
-
-http_add_headers(
-              'User-Agent' => 'DVSGHTTP1/1',
-              'Accept-Language' => 'en-gb',
-              'Connection' => 'Keep-Alive',
-                  );
-if (http_call("GET", "http://localhost")){
-  if (http_status() == 200 ){
-    print http_response();
-  } else {
-    print "MSG: ".http_reason();
-  }
-} else {
-  print "call failed \n";
-}
+ use HTTP::MHTTP;
+ 
+ http_init();
+ 
+ http_add_headers(
+               'User-Agent' => 'DVSGHTTP1/1',
+               'Accept-Language' => 'en-gb',
+               'Connection' => 'Keep-Alive',
+                   );
+ if (http_call("GET", "http://localhost")){
+   if (http_status() == 200 ){
+     print http_response();
+   } else {
+     print "MSG: ".http_reason();
+   }
+ } else {
+   print "call failed \n";
+ }
 
 
 =head1 DESCRIPTION
