@@ -22,3 +22,7 @@ Mon Mar 24 09:25:25 GMT 2003
 
 Mon Mar 24 12:11:39 GMT 2003
  0.11 - fix a bug with empty body, and move to get SSL validating certificates properly
+
+Mon May 19 06:33:09 BST 2003
+ 0.13 - enhanced the build process to determine where openssl is installed - this was all borrowed from
+        Crypt-SSLeay

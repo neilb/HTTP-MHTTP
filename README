@@ -28,7 +28,7 @@ The test suite assumes that you have access to the internet - so if the
 tests fail then it is most likely due to you not being able to hit
 http://www.piersharding.com
 
-perl Makefile.PL   <= change this to GOTSSL=yes perl Makefile.PL for SSL support
+perl Makefile.PL   <= change this to "GOTSSL=yes perl Makefile.PL" for SSL support
 make 
 make test
 make install
