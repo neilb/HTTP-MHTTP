@@ -41,26 +41,21 @@ HTTP::MHTTP->bootstrap($VERSION);
 
 =head1 NAME
 
-HTTP::MHTTP - this library provides reasonably low level access to the HTTP protocol, for perl.  This does not replace LWP (what possibly could :-) but is a cut for speed.
-It also supports all of HTTP 1.0, so you have GET, POST, PUT, HEAD, and DELETE.
-Some support of HTTP 1.1 is available - sepcifically Transfer-Encoding = chunked and the Keep-Alive extensions.
-
-Additionally - rudimentary SSL support can be compiled in.  This effectively enables negotiation of TLS, but does not validate the certificates.
-
+HTTP::MHTTP - low-level library for making HTTP requests
 
 =head1 SYNOPSIS
 
  use HTTP::MHTTP;
- 
+  
  http_init();
- 
+  
  http_add_headers(
                'User-Agent' => 'DVSGHTTP1/1',
                'Accept-Language' => 'en-gb',
                'Connection' => 'Keep-Alive',
                    );
- if (http_call("GET", "http://localhost")){
-   if (http_status() == 200 ){
+ if (http_call("GET", "http://localhost") > 0) {
+   if (http_status() == 200 ) {
      print http_response();
    } else {
      print "MSG: ".http_reason();
@@ -69,11 +64,14 @@ Additionally - rudimentary SSL support can be compiled in.  This effectively ena
    print "call failed \n";
  }
 
-
 =head1 DESCRIPTION
 
-A way faster http access library that uses C extension based on mhttp
-to do the calls.
+This library provides reasonably low level access to the HTTP protocol, for perl.
+This does not replace LWP (what possibly could :-) but is a cut for speed.
+It also supports all of HTTP 1.0, so you have GET, POST, PUT, HEAD, and DELETE.
+Some support of HTTP 1.1 is available - sepcifically Transfer-Encoding = chunked and the Keep-Alive extensions.
+
+Additionally - rudimentary SSL support can be compiled in.  This effectively enables negotiation of TLS, but does not validate the certificates.
 
 =head2 http_init()
 
@@ -196,7 +194,6 @@ and/or modified under the same terms as Perl itself.
 =head1 AUTHOR
 
 Piers Harding, piers@ompa.net.
-
 
 =head1 SEE ALSO
 
