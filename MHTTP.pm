@@ -71,11 +71,13 @@ This does not replace LWP (what possibly could :-) but is a cut for speed.
 It also supports all of HTTP 1.0, so you have GET, POST, PUT, HEAD, and DELETE.
 Some support of HTTP 1.1 is available - sepcifically Transfer-Encoding = chunked and the Keep-Alive extensions.
 
-Additionally - rudimentary SSL support can be compiled in.  This effectively enables negotiation of TLS, but does not validate the certificates.
+Additionally - rudimentary SSL support can be compiled in.
+This effectively enables negotiation of TLS,
+but does not validate the certificates.
 
 =head2 http_init()
 
-initialise the mhttp library - must be called once to reset all internals,
+Initialise the mhttp library - must be called once to reset all internals,
 use http_reset() if you don't need to reset your headers before the next call.
 
 
@@ -89,7 +91,7 @@ the default is 0 (HTTP 1.0).
 
 =head2 http_reset()
 
-reset the library internals for everything except the headers specified 
+Reset the library internals for everything except the headers specified 
 previously, and the debug switch.  Call http_init() if you need to reset
 everything.
 
@@ -127,23 +129,24 @@ Do an http request.  Returns either < 0 or 1 depending on whether the call was
 successful - remember to still check the http_status() code though.
 
 Value < 0 are:
-        -1 : an invalid action (HTTP verb) was supplied
-        -2 : must supply an action (HTTP verb)
-        -3 : must supply a url
-        -4 : url must start with http:// or https://
-        -5 : write of headers to socket failed
-        -6 : write of data to socket was short
-        -7 : failed to write last line to socket
-        -8 : something wrong with the Conent-Length header
-       -11 : SSL_CTX_new failed - abort everything
-       -12 : SSL_new failed - abort everything
-       -13 : SSL_connect failed - abort everything
-       -14 : SSL_get_peer_certificate failed - abort everything
-       -15 : X509_get_subject_name failed - abort everything
-       -16 : X509_get_issuer_name failed - abort everything
-       -17 : cant find the next chunk for Transfer-encoding
-       -18 : cant find end headers
-       -19 : You must supply a Host header for HTTP/1.1
+
+    -1 : an invalid action (HTTP verb) was supplied
+    -2 : must supply an action (HTTP verb)
+    -3 : must supply a url
+    -4 : url must start with http:// or https://
+    -5 : write of headers to socket failed
+    -6 : write of data to socket was short
+    -7 : failed to write last line to socket
+    -8 : something wrong with the Conent-Length header
+   -11 : SSL_CTX_new failed - abort everything
+   -12 : SSL_new failed - abort everything
+   -13 : SSL_connect failed - abort everything
+   -14 : SSL_get_peer_certificate failed - abort everything
+   -15 : X509_get_subject_name failed - abort everything
+   -16 : X509_get_issuer_name failed - abort everything
+   -17 : cant find the next chunk for Transfer-encoding
+   -18 : cant find end headers
+   -19 : You must supply a Host header for HTTP/1.1
 
 
 =head2 http_status()

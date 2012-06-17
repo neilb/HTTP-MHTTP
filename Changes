@@ -1,6 +1,9 @@
 Revision history for Perl module HTTP::MHTTP
 
 0.16 ??
+    - Fixed error in SYNOPSIS: was checking truth-value of http_call(),
+      but should check whether the return is positive.
+    - Reformatted the NAME section to give a brief one-line description
     - Reformatted this file according to CPAN::Changes::Spec
 
 0.15 2003-12-14
@@ -10,14 +13,16 @@ Revision history for Perl module HTTP::MHTTP
     - added -DOPENSSL_NO_KRB5 to suppress Kerberos header includes
 
 0.13 2003-05-19
-    - enhanced the build process to determine where openssl is installed - this was all borrowed from
-      Crypt-SSLeay
+    - enhanced the build process to determine where openssl is installed -
+      this was all borrowed from Crypt-SSLeay
 
 0.11 2003-03-24
-    - fix a bug with empty body, and move to get SSL validating certificates properly
+    - fix a bug with empty body,
+      and move to get SSL validating certificates properly
 
 0.10 2003-03-24
-    - add in basic SSL support - this does not validate certificates, but enables the TLS level negotiation.
+    - add in basic SSL support - this does not validate certificates,
+      but enables the TLS level negotiation.
 
 0.09 2003-03-02
     - fixed up the fudge for Solaris and herror() - I accidentally
