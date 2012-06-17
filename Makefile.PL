@@ -149,6 +149,10 @@ WriteMakefile(
     'DEFINE'	=> $GOTSSL,
     'LIBS'      => [($GOTSSL ? "$SSL_LIB $LIBS" : "")],
     'INC'	=> "-Imhttp ".($GOTSSL ? "-I".$SSL_INC : ""),
+    PREREQ_PM => {
+        'Carp'         => 0,
+        'MIME::Base64' => 0,
+    },
 );
 
 sub MY::postamble {

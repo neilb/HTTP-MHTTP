@@ -3,6 +3,7 @@ Revision history for Perl module HTTP::MHTTP
 0.16 ??
     - Fixed error in SYNOPSIS: was checking truth-value of http_call(),
       but should check whether the return is positive.
+    - Added MIME::Base64 and Carp as pre-requisites
     - Reformatted the NAME section to give a brief one-line description
     - Reformatted this file according to CPAN::Changes::Spec
 
